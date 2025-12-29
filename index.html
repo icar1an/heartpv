@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Present Value of Your Heart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'IBM Plex Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      padding-top: 48px;
+      background: #fff;
+      color: #000;
+    }
+
+    .ticker {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #000;
+      font-size: 11px;
+      padding: 8px 0;
+      overflow: hidden;
+      font-variant-numeric: tabular-nums;
+      z-index: 1000;
+      white-space: nowrap;
+    }
+
+    .ticker-track {
+      display: inline-block;
+      animation: scroll 60s linear infinite;
+    }
+
+    .ticker-content {
+      display: inline-block;
+      padding-right: 50px;
+    }
+
+    .ticker .up { color: #00ff00; }
+    .ticker .down { color: #ff4444; }
+    .ticker .neutral { color: #888; }
+
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .container {
+      max-width: 540px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .tagline {
+      font-size: 11px;
+      color: #888;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .input-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .input-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    label {
+      font-size: 14px;
+    }
+
+    .input-hint {
+      font-size: 10px;
+      color: #999;
+    }
+
+    input, select {
+      font-family: inherit;
+      font-size: 14px;
+      padding: 6px 10px;
+      border: 1px solid #000;
+      background: #fff;
+      width: 160px;
+      text-align: right;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      background: #fffde7;
+    }
+
+    .output {
+      text-align: center;
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    .heartbeat {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,0,0,0.03) 0%, transparent 70%);
+      animation: pulse 0.857s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+      50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.8; }
+    }
+
+    .value {
+      font-size: 44px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-variant-numeric: tabular-nums;
+      position: relative;
+      z-index: 1;
+      letter-spacing: -1px;
+    }
+
+    .label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .decay {
+      text-align: center;
+      margin-bottom: 12px;
+      font-size: 16px;
+      color: #cc0000;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .decay-rate {
+      font-weight: 600;
+    }
+
+    .lost-today {
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 32px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .lost-amount {
+      color: #cc0000;
+      font-weight: 600;
+    }
+
+    .comparisons {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 32px;
+      font-size: 11px;
+      color: #666;
+    }
+
+    .comparison {
+      text-align: center;
+    }
+
+    .comp-label {
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .comp-value {
+      font-weight: 600;
+      font-size: 18px;
+      color: #000;
+    }
+
+    .comp-unit {
+      font-size: 10px;
+      color: #999;
+    }
+
+    .recommendations {
+      border-top: 1px solid #000;
+      padding-top: 24px;
+    }
+
+    .rec-header {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      color: #666;
+    }
+
+    .rec-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .rec-row:last-child {
+      border-bottom: none;
+    }
+
+    .rec-action {
+      font-size: 14px;
+    }
+
+    .rec-meta {
+      text-align: right;
+    }
+
+    .rec-value {
+      font-size: 14px;
+      color: #006600;
+    }
+
+    .rec-rating {
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+    }
+
+    .rec-note {
+      font-size: 10px;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    .actions {
+      margin-top: 32px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 12px;
+      padding: 10px 20px;
+      border: 1px solid #000;
+      background: #fff;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.15s;
+    }
+
+    button:hover {
+      background: #000;
+      color: #fff;
+    }
+
+    .btn-danger {
+      border-color: #cc0000;
+      color: #cc0000;
+    }
+
+    .btn-danger:hover {
+      background: #cc0000;
+      color: #fff;
+    }
+
+    .methodology {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid #eee;
+    }
+
+    .methodology-header {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #999;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+
+    .methodology-header:hover {
+      color: #666;
+    }
+
+    .methodology-content {
+      display: none;
+      font-size: 11px;
+      color: #666;
+      line-height: 1.7;
+    }
+
+    .methodology-content.open {
+      display: block;
+    }
+
+    .methodology-content p {
+      margin-bottom: 8px;
+    }
+
+    .methodology-content code {
+      background: #f5f5f5;
+      padding: 2px 4px;
+      font-size: 10px;
+    }
+
+    .disclaimer {
+      margin-top: 24px;
+      font-size: 10px;
+      color: #999;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 40px;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .modal-content h2 {
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+
+    .modal-content p {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .beats-lived {
+      font-size: 11px;
+      color: #999;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="ticker">
+    <div class="ticker-track" id="tickerTrack">
+      <span class="ticker-content" id="tickerContent1"></span>
+      <span class="ticker-content" id="tickerContent2"></span>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1>Present Value of Your Heart</h1>
+    <p class="tagline">Mortality-adjusted valuation of remaining cardiac output</p>
+    
+    <div class="inputs">
+      <div class="input-row">
+        <label>Current age</label>
+        <input type="number" id="age" value="35" min="18" max="100">
+      </div>
+      <div class="input-row">
+        <div class="input-label">
+          <label>Resting heart rate</label>
+          <span class="input-hint">BPM (60-100 typical)</span>
+        </div>
+        <input type="number" id="bpm" value="70" min="40" max="200">
+      </div>
+      <div class="input-row">
+        <label>Tobacco use</label>
+        <select id="smoker">
+          <option value="no">Never</option>
+          <option value="former">Former</option>
+          <option value="yes">Current</option>
+        </select>
+      </div>
+      <div class="input-row">
+        <label>Weekly exercise</label>
+        <select id="exercise">
+          <option value="none">0 hours</option>
+          <option value="some">1-3 hours</option>
+          <option value="regular">3+ hours</option>
+        </select>
+      </div>
+      <div class="input-row">
+        <label>Health insurance</label>
+        <select id="insurance">
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="output">
+      <div class="heartbeat" id="heartbeat"></div>
+      <div class="value" id="presentValue">$2,847,203.47</div>
+      <div class="label">Present Value</div>
+      <div class="beats-lived" id="beatsLived">~1,286,280,000 beats expended</div>
+    </div>
+
+    <div class="decay">
+      <span class="decay-rate" id="decayRate">-$0.0847</span>/sec
+    </div>
+
+    <div class="lost-today">
+      <span class="lost-amount" id="lostToday">-$0.00</span> since opening this page
+    </div>
+
+    <div class="comparisons">
+      <div class="comparison">
+        <div class="comp-label">Equivalent to</div>
+        <div class="comp-value" id="compHouses">2.8</div>
+        <div class="comp-unit">median US homes</div>
+      </div>
+      <div class="comparison">
+        <div class="comp-label">Equivalent to</div>
+        <div class="comp-value" id="compTeslas">47</div>
+        <div class="comp-unit">Tesla Model 3s</div>
+      </div>
+      <div class="comparison">
+        <div class="comp-label">Equivalent to</div>
+        <div class="comp-value" id="compAvocados">5.7M</div>
+        <div class="comp-unit">avocados</div>
+      </div>
+    </div>
+
+    <div class="recommendations" id="recommendations">
+      <div class="rec-header">Maintenance Recommendations</div>
+    </div>
+
+    <div class="actions">
+      <button id="shareBtn">Export Valuation</button>
+      <button id="liquidateBtn" class="btn-danger">Liquidate</button>
+    </div>
+
+    <div class="methodology">
+      <div class="methodology-header" id="methodToggle">▶ Methodology</div>
+      <div class="methodology-content" id="methodContent">
+        <p><strong>Base value:</strong> EPA Value of Statistical Life ($11.6M) ÷ ~2.8B lifetime beats = <code>$0.00414/beat</code>.</p>
+        <p><strong>Discount rate:</strong> Pure actuarial mortality risk only. Uses Gompertz-Makeham approximation where annual mortality ≈ <code>0.0003 × e^(0.075 × age)</code>. No time-value-of-money component—a moment of existence in 2045 is worth the same as one today, conditional on surviving.</p>
+        <p><strong>Risk adjustments:</strong> Lifestyle factors shift your effective mortality curve via relative risk multipliers derived from epidemiological literature.</p>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      Terminal value: $0.<br>
+      This is not financial, medical, or existential advice.
+    </div>
+  </div>
+
+  <div class="modal" id="liquidateModal">
+    <div class="modal-content">
+      <h2>⚠️ Liquidation Unavailable</h2>
+      <p>We're sorry, but early liquidation of cardiac assets is not currently supported by our platform. Your heart will continue depreciating at the standard rate until terminal value is reached.</p>
+      <button onclick="document.getElementById('liquidateModal').classList.remove('active')">Continue Holding</button>
+    </div>
+  </div>
+
+  <script>
+    // Constants
+    const BASE_LIFE_EXPECTANCY = 76.1;
+    const VSL = 11600000;
+    const LIFETIME_BEATS_AT_70BPM = 2800000000;
+    const VALUE_PER_BEAT = VSL / LIFETIME_BEATS_AT_70BPM;
+    const SECONDS_PER_YEAR = 31536000;
+    const MEDIAN_HOME_PRICE = 420000;
+    const TESLA_PRICE = 42000;
+    const AVOCADO_PRICE = 0.50;
+
+    const adjustments = {
+      smoker: { yes: -10, former: -3, no: 0 },
+      exercise: { none: -4, some: 0, regular: 4 },
+      insurance: { yes: 2, no: -5 }
+    };
+
+    function bpmLifeAdjustment(bpm) {
+      if (bpm <= 60) return 2;
+      if (bpm <= 70) return 0;
+      if (bpm <= 80) return -1;
+      if (bpm <= 90) return -2;
+      return -4;
+    }
+
+    function annualMortalityRate(age, lifeAdjustment) {
+      const effectiveAge = age - lifeAdjustment;
+      const baseRate = 0.0003 * Math.exp(0.075 * effectiveAge);
+      return Math.min(baseRate, 1);
+    }
+
+    function survivalProbability(currentAge, targetAge, lifeAdjustment) {
+      let survival = 1;
+      for (let age = currentAge; age < targetAge; age++) {
+        survival *= (1 - annualMortalityRate(age, lifeAdjustment));
+      }
+      return survival;
+    }
+
+    let currentPV = 0;
+    let decayPerSecond = 0;
+    let displayPV = 0;
+    let startTime = Date.now();
+    let lastCalcTime = Date.now();
+    let currentMortalityRate = 0;
+    let yearsRemaining = 0;
+    let beatsRemaining = 0;
+
+    function calculate() {
+      const age = parseInt(document.getElementById('age').value) || 35;
+      const bpm = parseInt(document.getElementById('bpm').value) || 70;
+      const smoker = document.getElementById('smoker').value;
+      const exercise = document.getElementById('exercise').value;
+      const insurance = document.getElementById('insurance').value;
+
+      const lifeAdjustment = 
+        adjustments.smoker[smoker] + 
+        adjustments.exercise[exercise] + 
+        adjustments.insurance[insurance] +
+        bpmLifeAdjustment(bpm);
+
+      const beatsPerYear = bpm * 60 * 24 * 365.25;
+      const annualValue = beatsPerYear * VALUE_PER_BEAT;
+
+      currentPV = 0;
+      const maxAge = 110;
+      for (let futureAge = age + 1; futureAge <= maxAge; futureAge++) {
+        const pSurvive = survivalProbability(age, futureAge, lifeAdjustment);
+        currentPV += annualValue * pSurvive;
+      }
+
+      currentMortalityRate = annualMortalityRate(age, lifeAdjustment) * 100;
+
+      yearsRemaining = 0;
+      for (let futureAge = age + 1; futureAge <= maxAge; futureAge++) {
+        yearsRemaining += survivalProbability(age, futureAge, lifeAdjustment);
+      }
+
+      beatsRemaining = yearsRemaining * beatsPerYear;
+      decayPerSecond = currentPV / (yearsRemaining * SECONDS_PER_YEAR);
+
+      displayPV = currentPV;
+      lastCalcTime = Date.now();
+
+      document.getElementById('heartbeat').style.animationDuration = (60 / bpm) + 's';
+
+      const beatsLived = age * beatsPerYear;
+      document.getElementById('beatsLived').textContent = 
+        '~' + Math.round(beatsLived).toLocaleString() + ' beats expended';
+
+      document.getElementById('compHouses').textContent = (currentPV / MEDIAN_HOME_PRICE).toFixed(1);
+      document.getElementById('compTeslas').textContent = Math.round(currentPV / TESLA_PRICE);
+      document.getElementById('compAvocados').textContent = (currentPV / AVOCADO_PRICE / 1000000).toFixed(1) + 'M';
+
+      updateRecommendations(age, bpm, smoker, exercise, insurance, currentPV);
+      updateTicker(age, bpm, currentPV);
+    }
+
+    function updateDisplay() {
+      const now = Date.now();
+      const elapsedSinceCalc = (now - lastCalcTime) / 1000;
+      const elapsedSinceStart = (now - startTime) / 1000;
+
+      displayPV = currentPV - (decayPerSecond * elapsedSinceCalc);
+      const totalLost = decayPerSecond * elapsedSinceStart;
+
+      if (displayPV < 0) displayPV = 0;
+
+      document.getElementById('presentValue').textContent = '$' + displayPV.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      document.getElementById('decayRate').textContent = '-$' + decayPerSecond.toFixed(4);
+      document.getElementById('lostToday').textContent = '-$' + totalLost.toFixed(2);
+
+      requestAnimationFrame(updateDisplay);
+    }
+
+    function calculatePV(age, bpm, smoker, exercise, insurance) {
+      const lifeAdjustment = 
+        adjustments.smoker[smoker] + 
+        adjustments.exercise[exercise] + 
+        adjustments.insurance[insurance] +
+        bpmLifeAdjustment(bpm);
+
+      const beatsPerYear = bpm * 60 * 24 * 365.25;
+      const annualValue = beatsPerYear * VALUE_PER_BEAT;
+
+      let pv = 0;
+      for (let futureAge = age + 1; futureAge <= 110; futureAge++) {
+        pv += annualValue * survivalProbability(age, futureAge, lifeAdjustment);
+      }
+      return pv;
+    }
+
+    function updateRecommendations(age, bpm, smoker, exercise, insurance, currentPV) {
+      const recs = [];
+
+      if (smoker === 'yes') {
+        let newPV = calculatePV(age, bpm, 'no', exercise, insurance);
+        let impact = newPV - currentPV;
+        let roi = currentPV > 0 ? (impact / currentPV) * 100 : 0;
+        recs.push({ action: 'Quit smoking', impact, roi: Math.round(roi), note: '+10 years expected' });
+      } else if (smoker === 'former') {
+        recs.push({ action: 'Stayed quit', hold: true, note: 'Risk normalizing' });
+      }
+
+      if (exercise === 'none') {
+        let newPV = calculatePV(age, bpm, smoker, 'regular', insurance);
+        let impact = newPV - currentPV;
+        let roi = currentPV > 0 ? (impact / currentPV) * 100 : 0;
+        recs.push({ action: 'Begin exercise program', impact, roi: Math.round(roi), note: '150 min/week' });
+      } else if (exercise === 'some') {
+        let newPV = calculatePV(age, bpm, smoker, 'regular', insurance);
+        let impact = newPV - currentPV;
+        let roi = currentPV > 0 ? (impact / currentPV) * 100 : 0;
+        recs.push({ action: 'Increase exercise', impact, roi: Math.round(roi), note: 'Diminishing returns >5hr' });
+      }
+
+      if (insurance === 'no') {
+        let newPV = calculatePV(age, bpm, smoker, exercise, 'yes');
+        let impact = newPV - currentPV;
+        let roi = currentPV > 0 ? (impact / currentPV) * 100 : 0;
+        recs.push({ action: 'Acquire health insurance', impact, roi: Math.round(roi), note: 'Variance reduction' });
+      }
+
+      if (bpm > 80) {
+        let newPV = calculatePV(age, bpm - 10, smoker, 'regular', insurance);
+        let impact = newPV - currentPV;
+        let roi = currentPV > 0 ? (impact / currentPV) * 100 : 0;
+        recs.push({ action: 'Lower resting heart rate', impact, roi: Math.round(roi), note: 'Cardio → -10 BPM' });
+      }
+
+      const container = document.getElementById('recommendations');
+      container.innerHTML = '<div class="rec-header">Maintenance Recommendations</div>';
+
+      if (recs.length === 0) {
+        container.innerHTML += `<div class="rec-row"><span class="rec-action">No maintenance required</span><div class="rec-meta"><span class="rec-rating">OPTIMAL</span><div class="rec-note">Depreciation at minimum rate</div></div></div>`;
+      } else {
+        recs.forEach(rec => {
+          if (rec.hold) {
+            container.innerHTML += `<div class="rec-row"><span class="rec-action">${rec.action}</span><div class="rec-meta"><span class="rec-rating">MAINTAIN</span><div class="rec-note">${rec.note}</div></div></div>`;
+          } else {
+            container.innerHTML += `<div class="rec-row"><span class="rec-action">${rec.action}</span><div class="rec-meta"><span class="rec-value">+$${Math.round(rec.impact).toLocaleString()}</span><span class="rec-rating"> · ${rec.roi}% ROI</span><div class="rec-note">${rec.note}</div></div></div>`;
+          }
+        });
+      }
+    }
+
+    function formatTickerItem(label, value, isNegative, suffix = '') {
+      const arrow = isNegative ? '▼' : '▲';
+      const colorClass = isNegative ? 'down' : 'up';
+      return `<span class="${colorClass}">${label} ${arrow} ${value}${suffix}</span>`;
+    }
+
+    function formatNeutral(text) {
+      return `<span class="neutral">${text}</span>`;
+    }
+
+    function updateTicker(age, bpm, pv) {
+      const now = Date.now();
+      const dailyLoss = decayPerSecond * 86400;
+      const weeklyLoss = dailyLoss * 7;
+      const terminalYear = new Date().getFullYear() + Math.round(yearsRemaining);
+      const valuePerBeat = pv / beatsRemaining;
+      const beatsSincePageLoad = Math.floor((Date.now() - startTime) / 1000 * (bpm / 60));
+
+      // Fluctuating organ values
+      const liverPct = (Math.sin(now / 50000) * 2);
+      const kidneyPct = (Math.cos(now / 70000) * 1.5);
+      const lungPct = (Math.sin(now / 30000) * 0.8);
+      const brainPct = (Math.cos(now / 40000) * 1.2);
+      const spleenPct = (Math.sin(now / 90000) * 0.3);
+
+      const items = [
+        formatTickerItem('HEART', '$' + Math.round(pv).toLocaleString(), true),
+        formatTickerItem('LIVER', Math.abs(liverPct).toFixed(2) + '%', liverPct < 0),
+        formatTickerItem('KIDNEY', Math.abs(kidneyPct).toFixed(2) + '%', kidneyPct < 0),
+        formatTickerItem('LUNG', Math.abs(lungPct).toFixed(2) + '%', lungPct < 0),
+        formatTickerItem('BRAIN', Math.abs(brainPct).toFixed(2) + '%', brainPct < 0),
+        formatTickerItem('SPLEEN', Math.abs(spleenPct).toFixed(2) + '%', spleenPct < 0),
+        formatNeutral('SOUL: UNLISTED'),
+        formatTickerItem('24HR', '$' + dailyLoss.toFixed(2), true),
+        formatTickerItem('7D', '$' + weeklyLoss.toFixed(2), true),
+        formatNeutral('MORTALITY: ' + currentMortalityRate.toFixed(3) + '%/yr'),
+        formatNeutral('TERMINAL: ' + terminalYear),
+        formatNeutral('$/BEAT: $' + valuePerBeat.toFixed(6)),
+        formatNeutral('TARGET: $0.00'),
+        formatNeutral('OUTLOOK: DECAYING'),
+        formatNeutral('DIVIDEND: NONE'),
+        formatTickerItem('BEATS', beatsSincePageLoad.toLocaleString(), false),
+        formatNeutral('CONSCIOUSNESS: TEMPORARY'),
+        formatNeutral('VOID: CERTAIN'),
+      ];
+
+      const content = items.join('<span class="neutral">   ·   </span>');
+      document.getElementById('tickerContent1').innerHTML = content;
+      document.getElementById('tickerContent2').innerHTML = content;
+    }
+
+    setInterval(() => {
+      const age = parseInt(document.getElementById('age').value) || 35;
+      const bpm = parseInt(document.getElementById('bpm').value) || 70;
+      updateTicker(age, bpm, currentPV);
+    }, 100);
+
+    document.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('change', calculate);
+      el.addEventListener('input', calculate);
+    });
+
+    document.getElementById('methodToggle').addEventListener('click', () => {
+      const content = document.getElementById('methodContent');
+      const toggle = document.getElementById('methodToggle');
+      content.classList.toggle('open');
+      toggle.textContent = content.classList.contains('open') ? '▼ Methodology' : '▶ Methodology';
+    });
+
+    document.getElementById('shareBtn').addEventListener('click', async () => {
+      const age = document.getElementById('age').value;
+      const bpm = document.getElementById('bpm').value;
+      
+      // Create canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = 600;
+      canvas.height = 400;
+      const ctx = canvas.getContext('2d');
+      
+      // Background
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, 600, 400);
+      
+      // Border
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(10, 10, 580, 380);
+      
+      // Header
+      ctx.fillStyle = '#666';
+      ctx.font = '12px IBM Plex Mono, monospace';
+      ctx.fillText('CARDIAC ASSET VALUATION REPORT', 30, 45);
+      
+      // Divider
+      ctx.strokeStyle = '#333';
+      ctx.beginPath();
+      ctx.moveTo(30, 60);
+      ctx.lineTo(570, 60);
+      ctx.stroke();
+      
+      // Main value
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 42px IBM Plex Mono, monospace';
+      ctx.fillText('$' + Math.round(displayPV).toLocaleString(), 30, 115);
+      
+      // Present Value label
+      ctx.fillStyle = '#666';
+      ctx.font = '14px IBM Plex Mono, monospace';
+      ctx.fillText('PRESENT VALUE', 30, 140);
+      
+      // Decay rate
+      ctx.fillStyle = '#ff4444';
+      ctx.font = 'bold 24px IBM Plex Mono, monospace';
+      ctx.fillText('-$' + decayPerSecond.toFixed(4) + '/sec', 30, 185);
+      
+      // Stats grid
+      ctx.fillStyle = '#888';
+      ctx.font = '12px IBM Plex Mono, monospace';
+      
+      ctx.fillText('AGE', 30, 230);
+      ctx.fillText('BPM', 150, 230);
+      ctx.fillText('MORTALITY', 270, 230);
+      ctx.fillText('TERMINAL', 430, 230);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = '18px IBM Plex Mono, monospace';
+      ctx.fillText(age, 30, 255);
+      ctx.fillText(bpm, 150, 255);
+      ctx.fillText(currentMortalityRate.toFixed(2) + '%/yr', 270, 255);
+      ctx.fillText(String(new Date().getFullYear() + Math.round(yearsRemaining)), 430, 255);
+      
+      // Divider
+      ctx.strokeStyle = '#333';
+      ctx.beginPath();
+      ctx.moveTo(30, 280);
+      ctx.lineTo(570, 280);
+      ctx.stroke();
+      
+      // Bottom section
+      ctx.fillStyle = '#666';
+      ctx.font = '11px IBM Plex Mono, monospace';
+      ctx.fillText('BEATS REMAINING', 30, 310);
+      ctx.fillText('$/BEAT', 250, 310);
+      ctx.fillText('ANALYST TARGET', 430, 310);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = '14px IBM Plex Mono, monospace';
+      ctx.fillText(Math.round(beatsRemaining).toLocaleString(), 30, 332);
+      ctx.fillText('$' + (displayPV / beatsRemaining).toFixed(6), 250, 332);
+      
+      ctx.fillStyle = '#ff4444';
+      ctx.fillText('$0.00', 430, 332);
+      
+      // Footer with URL
+      ctx.fillStyle = '#444';
+      ctx.font = '11px IBM Plex Mono, monospace';
+      const url = window.location.hostname || 'presentvalueofyourheart.com';
+      ctx.fillText(url, 30, 375);
+      
+      ctx.fillStyle = '#333';
+      ctx.fillText('NOT FINANCIAL OR MEDICAL ADVICE', 350, 375);
+      
+      // Convert to blob and share/download
+      canvas.toBlob(async (blob) => {
+        const file = new File([blob], 'heart-valuation.png', { type: 'image/png' });
+        
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'Present Value of My Heart',
+              text: `My heart is worth $${Math.round(displayPV).toLocaleString()}, depreciating at $${decayPerSecond.toFixed(4)}/sec.`
+            });
+          } catch (e) {
+            downloadImage(blob);
+          }
+        } else {
+          downloadImage(blob);
+        }
+      }, 'image/png');
+    });
+    
+    function downloadImage(blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'heart-valuation.png';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('liquidateBtn').addEventListener('click', () => {
+      document.getElementById('liquidateModal').classList.add('active');
+    });
+
+    calculate();
+    requestAnimationFrame(updateDisplay);
+  </script>
+</body>
+</html>
