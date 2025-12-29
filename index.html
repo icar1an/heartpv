@@ -770,15 +770,17 @@
     document.getElementById('shareBtn').addEventListener('click', async () => {
       const age = document.getElementById('age').value;
       const bpm = document.getElementById('bpm').value;
+      const url = window.location.hostname || 'heartpv.spenserwu.com';
+      const shareText = `My heart is worth $${Math.round(displayPV).toLocaleString()}, depreciating at $${decayPerSecond.toFixed(4)}/sec. See yours at ${url}`;
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
       
       // Create canvas
-      const scale = 3; // Increase resolution (3x)
+      const scale = 3; 
       const canvas = document.createElement('canvas');
       canvas.width = 600 * scale;
       canvas.height = 400 * scale;
       const ctx = canvas.getContext('2d');
       
-      // Scale all drawing operations
       ctx.scale(scale, scale);
       
       // Background
@@ -858,7 +860,6 @@
       // Footer with URL
       ctx.fillStyle = '#666';
       ctx.font = '11px IBM Plex Mono, monospace';
-      const url = window.location.hostname || 'heartpv.spenserwu.com';
       ctx.fillText('make your own at: ' + url.toLowerCase(), 30, 375);
       
       ctx.fillStyle = '#333';
@@ -873,16 +874,31 @@
             await navigator.share({
               files: [file],
               title: 'Present Value of My Heart',
-              text: `My heart is worth $${Math.round(displayPV).toLocaleString()}, depreciating at $${decayPerSecond.toFixed(4)}/sec. See yours at ${url}`
+              text: shareText
             });
           } catch (e) {
-            downloadImage(blob);
+            handleFallback(blob, twitterUrl, shareText);
           }
         } else {
-          downloadImage(blob);
+          handleFallback(blob, twitterUrl, shareText);
         }
       }, 'image/png');
     });
+    
+    function handleFallback(blob, twitterUrl, shareText) {
+      // Download image
+      downloadImage(blob);
+      
+      // Ask user if they want to share to Twitter as well
+      if (confirm('Image downloaded! Would you also like to share your valuation on Twitter (X)?')) {
+        window.open(twitterUrl, '_blank');
+      } else {
+        // Fallback: Copy to clipboard
+        navigator.clipboard.writeText(shareText).then(() => {
+          alert('Valuation text copied to clipboard!');
+        });
+      }
+    }
     
     function downloadImage(blob) {
       const url = URL.createObjectURL(blob);
@@ -890,7 +906,7 @@
       a.href = url;
       a.download = 'heart-valuation.png';
       a.click();
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
     }
 
     document.getElementById('liquidateBtn').addEventListener('click', () => {
