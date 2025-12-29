@@ -416,7 +416,7 @@
           <label>Resting heart rate</label>
           <span class="input-hint">BPM (60-100 typical)</span>
         </div>
-        <input type="number" id="bpm" value="70" min="40" max="200">
+        <input type="number" id="bpm" value="70" min="40" max="150">
       </div>
       <div class="input-row">
         <label>Tobacco use</label>
@@ -557,8 +557,13 @@
     let beatsRemaining = 0;
 
     function calculate() {
-      const age = parseInt(document.getElementById('age').value) || 28;
-      const bpm = parseInt(document.getElementById('bpm').value) || 70;
+      let age = parseInt(document.getElementById('age').value) || 28;
+      let bpm = parseInt(document.getElementById('bpm').value) || 70;
+
+      // Clamp values to prevent absurd results
+      age = Math.max(18, Math.min(100, age));
+      bpm = Math.max(40, Math.min(150, bpm));
+
       const smoker = document.getElementById('smoker').value;
       const exercise = document.getElementById('exercise').value;
       const insurance = document.getElementById('insurance').value;
@@ -750,8 +755,13 @@
     }
 
     setInterval(() => {
-      const age = parseInt(document.getElementById('age').value) || 28;
-      const bpm = parseInt(document.getElementById('bpm').value) || 70;
+      let age = parseInt(document.getElementById('age').value) || 28;
+      let bpm = parseInt(document.getElementById('bpm').value) || 70;
+      
+      // Clamp values for ticker consistency
+      age = Math.max(18, Math.min(100, age));
+      bpm = Math.max(40, Math.min(150, bpm));
+      
       updateTicker(age, bpm, currentPV);
     }, 100);
 
@@ -768,8 +778,13 @@
     });
 
     document.getElementById('shareBtn').addEventListener('click', async () => {
-      const age = document.getElementById('age').value;
-      const bpm = document.getElementById('bpm').value;
+      let age = parseInt(document.getElementById('age').value) || 28;
+      let bpm = parseInt(document.getElementById('bpm').value) || 70;
+      
+      // Clamp values for share report
+      age = Math.max(18, Math.min(100, age));
+      bpm = Math.max(40, Math.min(150, bpm));
+
       const url = window.location.hostname || 'heartpv.spenserwu.com';
       const shareText = `My heart is worth $${Math.round(displayPV).toLocaleString()}, depreciating at $${decayPerSecond.toFixed(4)}/sec. See yours at ${url}`;
       const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
