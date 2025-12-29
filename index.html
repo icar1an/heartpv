@@ -873,7 +873,7 @@
             await navigator.share({
               files: [file],
               title: 'Present Value of My Heart',
-              text: `My heart is worth $${Math.round(displayPV).toLocaleString()}, depreciating at $${decayPerSecond.toFixed(4)}/sec.`
+              text: `My heart is worth $${Math.round(displayPV).toLocaleString()}, depreciating at $${decayPerSecond.toFixed(4)}/sec. See yours at ${url}`
             });
           } catch (e) {
             downloadImage(blob);
